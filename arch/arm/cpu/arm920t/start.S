@@ -1,8 +1,8 @@
 /*
  *  armboot - Startup Code for ARM920 CPU-core
  *
- *  Copyright (c) 2001	Marius GrÃ¶ger <mag@sysgo.de>
- *  Copyright (c) 2002	Alex ZÃ¼pke <azu@sysgo.de>
+ *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
+ *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
  *  Copyright (c) 2002	Gary Jennejohn <garyj@denx.de>
  *
  * See file CREDITS for list of people who contributed to this
@@ -142,11 +142,11 @@ copyex:
 
 # if defined(CONFIG_S3C2400)
 #  define pWTCON	0x15300000
-#  define INTMSK	0x14400008	/* Interrupt-Controller base addresses */
+#  define INTMSK	0x14400008	/* Interupt-Controller base addresses */
 #  define CLKDIVN	0x14800014	/* clock divisor register */
 #else
 #  define pWTCON	0x53000000
-#  define INTMSK	0x4A000008	/* Interrupt-Controller base addresses */
+#  define INTMSK	0x4A000008	/* Interupt-Controller base addresses */
 #  define INTSUBMSK	0x4A00001C
 #  define CLKDIVN	0x4C000014	/* clock divisor register */
 # endif
@@ -162,7 +162,7 @@ copyex:
 	ldr	r0, =INTMSK
 	str	r1, [r0]
 # if defined(CONFIG_S3C2410)
-	ldr	r1, =0x3ff
+	ldr	r1, =0x7ff
 	ldr	r0, =INTSUBMSK
 	str	r1, [r0]
 # endif
@@ -181,6 +181,26 @@ copyex:
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	bl	cpu_init_crit
 #endif
+
+#if defined(CONFIG_NAND_BOOT)
+	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
+	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
+#if defined(CONFIG_ARCH_CPU_INIT)
+	bl	arch_cpu_init
+#endif
+#if defined(CONFIG_BOARD_EARLY_INIT_F)
+	bl	board_early_init_f
+#endif
+	bl	nand_init_ll
+	ldr	r0, =0x000000
+	ldr	r1, _end_ofs
+	ldr	r2, _TEXT_BASE
+	bl	nand_read_ll
+
+	ldr	r0, =0x00000000
+	ldr	lr, =board_init_f
+	mov	pc, lr
+#endif /* CONFIG_NAND_BOOT */
 
 /* Set stackpointer in internal RAM to call board_init_f */
 call_board_init_f:
@@ -221,21 +241,22 @@ copy_loop:
 	cmp	r0, r2			/* until source end address [r2]    */
 	blo	copy_loop
 
-#ifndef CONFIG_SPL_BUILD
+#ifndef CONFIG_PRELOADER
 	/*
 	 * fix .rel.dyn relocations
 	 */
-	ldr	r0, _TEXT_BASE		/* r0 <- Text base */
-	sub	r9, r6, r0		/* r9 <- relocation offset */
+	ldr	r0, _TEXT_BASE		/* r0  <- Text base */
+	sub	r9, r6, r0		/* r9  <- relocation offset */
 	ldr	r10, _dynsym_start_ofs	/* r10 <- sym table ofs */
 	add	r10, r10, r0		/* r10 <- sym table in FLASH */
-	ldr	r2, _rel_dyn_start_ofs	/* r2 <- rel dyn start ofs */
-	add	r2, r2, r0		/* r2 <- rel dyn start in FLASH */
-	ldr	r3, _rel_dyn_end_ofs	/* r3 <- rel dyn end ofs */
-	add	r3, r3, r0		/* r3 <- rel dyn end in FLASH */
+	ldr	r2, _rel_dyn_start_ofs	/* r2  <- rel dyn start ofs */
+	add	r2, r2, r0		/* r2  <- rel dyn start in FLASH */
+	ldr	r3, _rel_dyn_end_ofs	/* r3  <- rel dyn end ofs */
+	add	r3, r3, r0		/* r3  <- rel dyn end in FLASH */
+
 fixloop:
-	ldr	r0, [r2]		/* r0 <- location to fix up, IN FLASH! */
-	add	r0, r0, r9		/* r0 <- location to fix up in RAM */
+	ldr	r0, [r2]		/* r0  <- location to fix up, IN FLASH! */
+	add	r0, r0, r9		/* r0  <- location to fix up in RAM */
 	ldr	r1, [r2, #4]
 	and	r7, r1, #0xff
 	cmp	r7, #23			/* relative fixup? */
@@ -263,7 +284,7 @@ fixnext:
 #endif
 
 clear_bss:
-#ifndef CONFIG_SPL_BUILD
+#ifndef CONFIG_PRELOADER
 	ldr	r0, _bss_start_ofs
 	ldr	r1, _bss_end_ofs
 	mov	r4, r6			/* reloc addr */
@@ -277,7 +298,6 @@ clbss_l:str	r2, [r0]		/* clear loop...		    */
 	bne	clbss_l
 
 	bl coloured_LED_init
-	bl red_led_on
 #endif
 
 /*
