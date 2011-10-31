@@ -142,6 +142,7 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 
+#if defined(CONFIG_FLASH_CFI_LEGACY)
 /*
  * Hardcoded flash setup:
  * Flash 0 is a non-CFI SST 39LV1601 flash.
@@ -153,3 +154,4 @@ ulong board_flash_get_legacy(ulong base, int banknum, flash_info_t *info)
 	info->interface = FLASH_CFI_X16;
 	return 1;
 }
+#endif
