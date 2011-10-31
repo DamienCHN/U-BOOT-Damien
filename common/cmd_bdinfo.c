@@ -329,10 +329,18 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int i;
+#if defined(CONFIG_S3C2410)
+	char buf[32];
+#endif
 	bd_t *bd = gd->bd;
 
 	print_num("arch_number",	bd->bi_arch_number);
 	print_num("boot_params",	(ulong)bd->bi_boot_params);
+#if defined(CONFIG_S3C2410)
+	printf("%-12s= %6s MiHz\n", "core_freq", strmhz(buf, get_FCLK()));
+	printf("%-12s= %6s MiHz\n", "hbus_freq", strmhz(buf, get_HCLK()));
+	printf("%-12s= %6s MiHz\n", "peri_freq", strmhz(buf, get_PCLK()));
+#endif
 
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; ++i) {
 		print_num("DRAM bank",	i);
