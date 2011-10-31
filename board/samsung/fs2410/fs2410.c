@@ -112,8 +112,8 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	/* arch number of SMDK2410-Board */
-	gd->bd->bi_arch_number = MACH_TYPE_SMDK2410;
+	/* arch number of FS2410-Board */
+	gd->bd->bi_arch_number = MACH_TYPE_FS2410;
 
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = 0x30000100;
@@ -144,7 +144,7 @@ int board_eth_init(bd_t *bis)
 
 /*
  * Hardcoded flash setup:
- * Flash 0 is a non-CFI AMD AM29LV800BB flash.
+ * Flash 0 is a non-CFI SST 39LV1601 flash.
  */
 ulong board_flash_get_legacy(ulong base, int banknum, flash_info_t *info)
 {
