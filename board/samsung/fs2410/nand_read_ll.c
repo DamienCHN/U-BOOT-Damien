@@ -2,15 +2,15 @@
 #include <common.h>
 
 #if defined(CONFIG_NAND_BOOT_S3C2410)
-#define __REGb(x) 	(*(volatile unsigned char *)(x)) 
-#define __REGi(x) 	(*(volatile ulong  *)(x)) 
-#define NF_BASE 	0x4E000000 
-#define NFCONF 		__REGi(NF_BASE + 0x00) 
-#define NFCMD 		__REGb(NF_BASE + 0x04) 
-#define NFADDR 		__REGb(NF_BASE + 0x08) 
-#define NFDATA 		__REGb(NF_BASE + 0x0C) 
-#define NFSTAT 		__REGb(NF_BASE + 0x10) 
-#define BUSY 		1 
+#define __REGb(x)	(*(volatile unsigned char *)(x))
+#define __REGi(x)	(*(volatile ulong *)(x))
+#define NF_BASE		0x4E000000
+#define NFCONF		__REGi(NF_BASE + 0x00)
+#define NFCMD		__REGb(NF_BASE + 0x04)
+#define NFADDR		__REGb(NF_BASE + 0x08)
+#define NFDATA		__REGb(NF_BASE + 0x0C)
+#define NFSTAT		__REGb(NF_BASE + 0x10)
+#define BUSY		1
 
 #define NFCONF_TWRPH1	7
 #define NFCONF_TWRPH0	7
@@ -20,15 +20,15 @@
 #define NFCONF_ENABLE	1
 
 static inline void nand_chip_en (void) { NFCONF &= ~0x0800; }
-static inline void nand_chip_di (void) { NFCONF |=  0x0800; }
+static inline void nand_chip_di (void) { NFCONF |= 0x0800; }
 
-static inline void wait_idle (void) 
-{ 
-	int i;  
+static inline void wait_idle (void)
+{
+	int i;
 
-	while (!(NFSTAT & BUSY)) 
-		for (i = 0; i < 10; i++); 
-} 
+	while (!(NFSTAT & BUSY))
+		for (i = 0; i < 10; i++);
+}
 
 static int nand_read_page (ulong block, ulong page, uchar* dst)
 {
@@ -36,12 +36,12 @@ static int nand_read_page (ulong block, ulong page, uchar* dst)
 
 	nand_chip_en ();
 
-	NFCMD = 0; 
+	NFCMD = 0;
 	offs = block * CONFIG_SYS_NAND_BLOCK_SIZE + page * CONFIG_SYS_NAND_PAGE_SIZE;
-	NFADDR = (offs >>  0U) & 0xFFU; 
-	NFADDR = (offs >>  9U) & 0xFFU; 
-	NFADDR = (offs >> 17U) & 0xFFU; 
-	NFADDR = (offs >> 25U) & 0xFFU; 
+	NFADDR = (offs >> 0U) & 0xFFU;
+	NFADDR = (offs >> 9U) & 0xFFU;
+	NFADDR = (offs >> 17U) & 0xFFU;
+	NFADDR = (offs >> 25U) & 0xFFU;
 	wait_idle ();
 
 	for (offs = 0; offs < CONFIG_SYS_NAND_PAGE_SIZE; offs++)
@@ -52,11 +52,11 @@ static int nand_read_page (ulong block, ulong page, uchar* dst)
 	return (0);
 }
 
-void nand_init_ll (void) 
+void nand_init_ll (void)
 {
-	NFCONF = (NFCONF_TWRPH1 <<  0) | (NFCONF_TWRPH0 <<  4) |
-		 (NFCONF_TACLS  <<  8) | (NFCONF_nFCE   << 11) |
-		 (NFCONF_ECC    << 12) | (NFCONF_ENABLE << 15);
+	NFCONF = (NFCONF_TWRPH1 << 0) | (NFCONF_TWRPH0 << 4) |
+		 (NFCONF_TACLS << 8) | (NFCONF_nFCE << 11) |
+		 (NFCONF_ECC << 12) | (NFCONF_ENABLE << 15);
 
 	nand_chip_en ();
 
@@ -82,7 +82,7 @@ int nand_read_ll (ulong offs, ulong uboot_size, uchar* dst)
 
 	while (block <= last_block) {
 		while (page < CONFIG_SYS_NAND_PAGE_COUNT) {
-			ret  = nand_read_page (block, page, dst);
+			ret = nand_read_page (block, page, dst);
 			dst += CONFIG_SYS_NAND_PAGE_SIZE;
 			page++;
 		}
